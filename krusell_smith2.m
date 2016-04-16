@@ -16,8 +16,8 @@ PI_A = [7/8, 1/8; 1/8, 7/8];
 
 % ASSET VECTOR
 k_lo = 0;% lower bound of grid points
-k_hi = 80;% upper bound of grid points
-num_k = 80;
+k_hi = 50;% upper bound of grid points
+num_k = 150;
 
 k = linspace(k_lo, k_hi, num_k); % asset (row) vector
 
@@ -92,10 +92,10 @@ coeffj = 1;
 r_2 = 0;
 
 % iterate until r_2 > 0.95
-while r_2 < 0.95
+while r_2 < 0.99
     v_guess = zeros(num_K, num_k, 4);
     v_tol = 1;
-while v_tol > 0.01
+while v_tol > 0.001
     log_K_prime = repmat(coeffs*[ones(1, num_K); log(K)], [2, 1]);
     K_prime = exp(log_K_prime);
     K_prime(K_prime<30) = 30;
@@ -129,11 +129,11 @@ end
 pol_indx = permute(pol_indx, [3 1 4 2]);
 pol_fn = k(pol_indx);
 
-%{
+
 plot(k, pol_fn(:, :, 8))
 plot(k, permute(vfn(8, :, :), [3, 2, 1]))
 legend('z=1', 'z=2', 'z=3', 'z=4')
-%}
+
 
 
 K_series = zeros(T_sim, 1);
@@ -198,10 +198,10 @@ for ii = 1:2
             if pol_fn_1(ii,jj)<0;
                 x1 = 2;
             else
-                if find(k>pol_fn_1(ii,jj), 1)<80;
+                if find(k>pol_fn_1(ii,jj), 1)<150;
                 x1=find(k>pol_fn_1(ii,jj), 1);
                 else
-                x1=80;
+                x1=150;
                 end
             end
             x2=x1-1;
@@ -265,12 +265,12 @@ end
 % series
 
 
-K_11 = [A_high(1:5499)'.*ones(1,5499)', A_high(1:5499)'.*log(K_series_p(1:5499, 1)), (1-A_high(1:5499))'.*ones(1,5499)', (1-A_high(1:5499))'.*log(K_series_p(1:5499, 1))];
+K_11 = [A_high(501:5499)'.*ones(1,4999)', A_high(501:5499)'.*log(K_series_p(501:5499, 1)), (1-A_high(501:5499))'.*ones(1,4999)', (1-A_high(501:5499))'.*log(K_series_p(501:5499, 1))];
 %K_11 = [A_high(501:999)'.*ones(1,499)', A_high(501:999)'.*log(K_series_p(501:999, 1)), (1-A_high(501:999))'.*ones(1,499)', (1-A_high(501:999))'.*log(K_series_p(501:999, 1))];
 
-coeffs_estimated = inv(K_11'*K_11)*K_11'*log(K_series(2:5500));
-rss = sum((log(K_series(2:5500)) - K_11*coeffs_estimated).^2);
-tss = sum((log(K_series(2:5500)) - mean(log(K_series(2:5500)))).^2);
+coeffs_estimated = inv(K_11'*K_11)*K_11'*log(K_series(502:5500));
+rss = sum((log(K_series(502:5500)) - K_11*coeffs_estimated).^2);
+tss = sum((log(K_series(502:5500)) - mean(log(K_series(502:5500)))).^2);
 r_2 = 1 - rss/tss
 coeffs_estimated = reshape(coeffs_estimated, [2,2]);
 coeffs_estimated = coeffs_estimated';
@@ -280,7 +280,7 @@ coeffs_estimated = coeffs_estimated';
 coeffs_new = 0.9 * coeffs + 0.1 * coeffs_estimated;
 coeffs_tol = max(max((abs(coeffs_new(:) - coeffs(:)))));
 
-coeffs = coeffs_new;
+coeffs = coeffs_new
 coeffs_tol
 
 coeffj = coeffj+1
@@ -290,4 +290,4 @@ end
 e = cputime - t;
 display (['runtime is ', num2str(e)])
 
-
+plot(k, Mu)
